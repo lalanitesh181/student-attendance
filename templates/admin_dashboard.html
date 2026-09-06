@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+    <p>Manage students, teachers, and classes</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <i class="fas fa-users"></i>
+        <div class="stat-info">
+            <h3>{{ total_students }}</h3>
+            <p>Students</p>
+        </div>
+    </div>
+    <div class="stat-card green">
+        <i class="fas fa-chalkboard-teacher"></i>
+        <div class="stat-info">
+            <h3>{{ total_teachers }}</h3>
+            <p>Teachers</p>
+        </div>
+    </div>
+    <div class="stat-card orange">
+        <i class="fas fa-school"></i>
+        <div class="stat-info">
+            <h3>{{ total_classes }}</h3>
+            <p>Classes</p>
+        </div>
+    </div>
+</div>
+
+<!-- Add Forms Section -->
+<div class="forms-grid">
+    <!-- Add Student -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-user-plus"></i> Add Student</h3>
+        </div>
+        <form method="POST" action="{{ url_for('add_student') }}">
+            <div class="form-group">
+                <input type="text" name="name" placeholder="Full Name" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="roll_number" placeholder="Roll Number" required>
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="tel" name="phone" placeholder="Phone Number" required>
+            </div>
+            <div class="form-group">
+                <select name="class_id" required>
+                    <option value="">Select Class</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.class_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Subjects (Hold Ctrl to select multiple)</label>
+                <select name="subjects" multiple class="multi-select">
+                    {% for c in classes %}
+                        {% for sub in c.subjects %}
+                        <option value="{{ sub.name }}">{{ c.class_name }} - {{ sub.name }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-plus"></i> Add Student
+            </button>
+        </form>
+    </div>
+
+    <!-- Add Teacher -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-chalkboard-teacher"></i> Add Teacher</h3>
+        </div>
+        <form method="POST" action="{{ url_for('add_teacher') }}">
+            <div class="form-group">
+                <input type="text" name="name" placeholder="Full Name" required>
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="tel" name="phone" placeholder="Phone Number" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <div class="form-group">
+                <label>Subjects Taught</label>
+                <select name="subjects" multiple class="multi-select">
+                    {% for c in classes %}
+                        {% for sub in c.subjects %}
+                        <option value="{{ sub.name }}">{{ c.class_name }} - {{ sub.name }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Assigned Classes</label>
+                <select name="assigned_classes" multiple class="multi-select">
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.class_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">
+                <i class="fas fa-plus"></i> Add Teacher
+            </button>
+        </form>
+    </div>
+
+    <!-- Add Class -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-school"></i> Add Class</h3>
+        </div>
+        <form method="POST" action="{{ url_for('add_class') }}">
+            <div class="form-group">
+                <input type="text" name="class_name" placeholder="Class Name (e.g., BSc CS FY)" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="department" placeholder="Department" required>
+            </div>
+            <div class="form-group">
+                <label>Subjects (comma-separated)</label>
+                <textarea name="subjects" rows="4" placeholder="e.g., Mathematics, Physics, Chemistry, Computer Science" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-warning btn-block">
+                <i class="fas fa-plus"></i> Add Class
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Data Tables -->
+<div class="card full-width">
+    <div class="card-header">
+        <h3><i class="fas fa-list"></i> All Students</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Class</th>
+                    <th>Subjects</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td>{{ s.roll_number }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.email }}</td>
+                    <td>{{ s.phone }}</td>
+                    <td>{{ s.class_id }}</td>
+                    <td>{{ s.subjects | join(', ') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center">No students added yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card full-width">
+    <div class="card-header">
+        <h3><i class="fas fa-list"></i> All Teachers</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Subjects</th>
+                    <th>Assigned Classes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in teachers %}
+                <tr>
+                    <td>{{ t.name }}</td>
+                    <td>{{ t.email }}</td>
+                    <td>{{ t.phone }}</td>
+                    <td>{{ t.subjects | join(', ') }}</td>
+                    <td>{{ t.assigned_classes | join(', ') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center">No teachers added yet</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

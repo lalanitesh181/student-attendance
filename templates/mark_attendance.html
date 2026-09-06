@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fas fa-clipboard-check"></i> Mark Attendance</h1>
+    <p>Select class, subject and date to mark attendance</p>
+</div>
+
+<div class="card">
+    <form method="GET" action="{{ url_for('mark_attendance') }}" class="filter-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Class</label>
+                <select name="class_id" required onchange="this.form.submit()">
+                    <option value="">Select Class</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}" {% if selected_class == c.id %}selected{% endif %}>
+                        {{ c.class_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject" required onchange="this.form.submit()">
+                    <option value="">Select Subject</option>
+                    {% for c in classes %}
+                        {% if c.id == selected_class %}
+                            {% for sub in c.subjects %}
+                            <option value="{{ sub.name }}" {% if selected_subject == sub.name %}selected{% endif %}>
+                                {{ sub.name }}
+                            </option>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" value="{{ selected_date }}" required onchange="this.form.submit()">
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if students %}
+<div class="card full-width">
+    <div class="card-header">
+        <h3><i class="fas fa-users"></i> Student List</h3>
+        <span class="badge">{{ students | length }} Students</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('mark_attendance') }}">
+        <input type="hidden" name="class_id" value="{{ selected_class }}">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <input type="hidden" name="date" value="{{ selected_date }}">
+
+        <div class="attendance-list">
+            <div class="attendance-header">
+                <span>Roll No</span>
+                <span>Student Name</span>
+                <span>Status</span>
+            </div>
+
+            {% for student in students %}
+            {% set existing = existing_records.get(student.id, {}) %}
+            <div class="attendance-row">
+                <span class="roll-no">{{ student.roll_number }}</span>
+                <span class="student-name">{{ student.name }}</span>
+                <div class="toggle-group">
+                    <label class="toggle-btn present">
+                        <input type="radio" name="student_{{ student.id }}" value="present" 
+                            {% if existing.get('status') == 'present' %}checked{% endif %} required>
+                        <span><i class="fas fa-check"></i> Present</span>
+                    </label>
+                    <label class="toggle-btn absent">
+                        <input type="radio" name="student_{{ student.id }}" value="absent"
+                            {% if existing.get('status') == 'absent' %}checked{% endif %}>
+                        <span><i class="fas fa-times"></i> Absent</span>
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save"></i> Save Attendance
+            </button>
+            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </form>
+</div>
+{% else %}
+<div class="card empty-state">
+    <i class="fas fa-users-slash"></i>
+    <p>No students found for the selected class.</p>
+</div>
+{% endif %}
+{% endblock %}

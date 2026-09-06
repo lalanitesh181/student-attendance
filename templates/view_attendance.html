@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1><i class="fas fa-chart-bar"></i> View Attendance</h1>
+    <p>Check and filter attendance records</p>
+</div>
+
+<div class="card">
+    <form method="GET" action="{{ url_for('view_attendance') }}" class="filter-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Class</label>
+                <select name="class_id" onchange="this.form.submit()">
+                    <option value="">All Classes</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}" {% if selected_class == c.id %}selected{% endif %}>
+                        {{ c.class_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject" onchange="this.form.submit()">
+                    <option value="">All Subjects</option>
+                    {% for c in classes %}
+                        {% if not selected_class or c.id == selected_class %}
+                            {% for sub in c.subjects %}
+                            <option value="{{ sub.name }}" {% if selected_subject == sub.name %}selected{% endif %}>
+                                {{ sub.name }}
+                            </option>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card full-width">
+    <div class="card-header">
+        <h3><i class="fas fa-list"></i> Attendance Records</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Teacher</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for att in attendance %}
+                {% set present_count = 0 %}
+                {% set absent_count = 0 %}
+                {% for r in att.records.values() %}
+                    {% if r.status == 'present' %}{% set present_count = present_count + 1 %}{% endif %}
+                    {% if r.status == 'absent' %}{% set absent_count = absent_count + 1 %}{% endif %}
+                {% endfor %}
+                <tr>
+                    <td>{{ att.date }}</td>
+                    <td>{{ att.class_id }}</td>
+                    <td>{{ att.subject }}</td>
+                    <td>{{ att.teacher_name }}</td>
+                    <td class="text-success">{{ att.records.values() | selectattr('status', 'equalto', 'present') | list | length }}</td>
+                    <td class="text-danger">{{ att.records.values() | selectattr('status', 'equalto', 'absent') | list | length }}</td>
+                    <td>{{ att.records | length }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center">No attendance records found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
